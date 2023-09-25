@@ -74,12 +74,6 @@ public class Movement : MonoBehaviour
             Invoke(nameof(ResetJump), jumpCooldown);
         }
         
-        // when to glide
-        else if (Input.GetKey(glideKey) && !grounded)
-        {
-            isGliding = true;
-            Glide();
-        }
     }
 
     private void MovePlayer()
@@ -135,23 +129,4 @@ public class Movement : MonoBehaviour
     {
         readyToJump = true;
     }
-
-    private void Glide()
-    {
-        if (direction.magnitude == 0)
-        {
-            
-        }
-
-        
-        // rotate player
-        float targetAngle = transform.eulerAngles.x + 90f; // todo: glide-turn-speed instead of 90f
-        float angle =
-            Mathf.SmoothDampAngle(transform.eulerAngles.x, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-        transform.rotation = Quaternion.Euler(angle, transform.eulerAngles.y, transform.eulerAngles.z);
-        
-        // todo: add force onto player (in transform.eulerAngles.x^-1 direction)
-    }
-    
-    // todo: Boost() / SwimBoost(); can maybe reuse jump code with a scaled jumpforce » boostforce
 }
