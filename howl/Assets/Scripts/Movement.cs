@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -22,6 +23,10 @@ public class Movement : MonoBehaviour
             public float airMultiplier;
             private bool readyToJump = true;
             private bool grounded;
+
+    [Header("Air Movement")] 
+        [Header("Gliding")]
+            private bool isGliding;
         
         
 
@@ -36,6 +41,7 @@ public class Movement : MonoBehaviour
 
     [Header("Keybinds")] 
         public KeyCode jumpKey;
+        public KeyCode glideKey;
 
     private void Start()
     {
@@ -67,24 +73,32 @@ public class Movement : MonoBehaviour
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
         }
+        
+        // when to glide
+        else if (Input.GetKey(glideKey) && !grounded)
+        {
+            isGliding = true;
+            Glide();
+        }
     }
 
     private void MovePlayer()
     {
-        if (direction.magnitude == 0) return;
+        if (direction.magnitude == 0 || isGliding) return;
         
         // rotate player
         float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
         float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity,
             turnSmoothTime);
         transform.rotation = Quaternion.Euler(0f, angle, 0f);
-        
+
         // calculate move direction
         Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-        
+
         // move on ground
         if (grounded)
             rb.AddForce(moveDir.normalized * moveSpeed, ForceMode.Force);
+        // move in air
         else if (!grounded)
             rb.AddForce(moveDir.normalized * (moveSpeed * airMultiplier), ForceMode.Force);
     }
@@ -94,6 +108,8 @@ public class Movement : MonoBehaviour
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
         rb.drag = grounded ? groundDrag : 0f;
+        
+        if (grounded) isGliding = false;
     }
 
     private void SpeedControl()
@@ -119,4 +135,23 @@ public class Movement : MonoBehaviour
     {
         readyToJump = true;
     }
+
+    private void Glide()
+    {
+        if (direction.magnitude == 0)
+        {
+            
+        }
+
+        
+        // rotate player
+        float targetAngle = transform.eulerAngles.x + 90f; // todo: glide-turn-speed instead of 90f
+        float angle =
+            Mathf.SmoothDampAngle(transform.eulerAngles.x, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+        transform.rotation = Quaternion.Euler(angle, transform.eulerAngles.y, transform.eulerAngles.z);
+        
+        // todo: add force onto player (in transform.eulerAngles.x^-1 direction)
+    }
+    
+    // todo: Boost() / SwimBoost(); can maybe reuse jump code with a scaled jumpforce » boostforce
 }
